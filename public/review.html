@@ -116,6 +116,57 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        #destinationImages {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        #destinationImages img {
+            max-height: 150px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #transportationOptions {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #dcdde1;
+            border-radius: 16px;
+            background: #f9f9f9;
+        }
+
+        #transportationOptions h4 {
+            color: #0984e3;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        #transportationOptions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #transportationOptions li {
+            margin-bottom: 8px;
+        }
+
+        .transport-link {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #00b894;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .transport-link:hover {
+            background-color: #009478;
+        }
     </style>
 </head>
 <body>
@@ -128,8 +179,27 @@
         </div>
 
         <div class="section">
+            <h3>Destination Images</h3>
+            <div id="destinationImages"></div>
+        </div>
+
+        <div class="section">
             <h3>Selected Accommodations</h3>
             <div id="accommodationListContainer"></div>
+        </div>
+
+        <div class="section" id="transportationOptionsSection">
+            <h3>Transportation Options</h3>
+            <div id="transportationOptions">
+                <p>Explore transportation options for your destination:</p>
+                <ul>
+                    <li><a href="https://www.skyscanner.com/" target="_blank" class="transport-link">Search Flights on Skyscanner</a></li>
+                    <li><a href="https://www.google.com/flights" target="_blank" class="transport-link">Search Flights on Google Flights</a></li>
+                    <li><a href="https://www.rome2rio.com/" target="_blank" class="transport-link">Find Buses, Trains & More with Rome2Rio</a></li>
+                    <li><a href="https://www.rentalcars.com/" target="_blank" class="transport-link">Rent a Car with Rentalcars.com</a></li>
+                    </ul>
+                <p>For more specific local transportation, please check local city or region websites.</p>
+            </div>
         </div>
 
         <button class="confirm-btn" onclick="saveTrip()">
@@ -159,7 +229,37 @@
             `;
 
             renderAccommodations();
+            fetchUnsplashImages(tripData.destination, 'YjrqRz1N2W2V-IZyCgbnra9TlkYBD4uOH25HSp39cK0'); // Replace with your actual key
         });
+
+        async function fetchUnsplashImages(destination, apiKey) {
+            const destinationImagesContainer = document.getElementById("destinationImages");
+            destinationImagesContainer.innerHTML = "<p>Loading images...</p>";
+
+            const searchTerm = encodeURIComponent(destination);
+            const apiUrl = `https://api.unsplash.com/search/photos?query=${searchTerm}&per_page=5&client_id=${apiKey}`; // Adjust per_page as needed
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                destinationImagesContainer.innerHTML = ""; // Clear loading message
+
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(photo => {
+                        const img = document.createElement("img");
+                        img.src = photo.urls.regular; // You can use 'thumb', 'small', 'regular', 'full', 'raw'
+                        img.alt = photo.alt_description || destination;
+                        destinationImagesContainer.appendChild(img);
+                    });
+                } else {
+                    destinationImagesContainer.innerHTML = "<p>No relevant images found on Unsplash.</p>";
+                }
+
+            } catch (error) {
+                console.error("Error fetching destination images from Unsplash:", error);
+                destinationImagesContainer.innerHTML = "<p>Failed to load destination images.</p>";
+            }
+        }
 
         function renderAccommodations() {
             const selectedAccommodations = JSON.parse(localStorage.getItem("selectedAccommodations") || "[]");
